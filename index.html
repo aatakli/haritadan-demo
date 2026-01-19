@@ -6,29 +6,25 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
-html,body{height:100%}
-:root{--h:56px}
-header{position:fixed;top:0;left:0;width:100%;height:64px;background:#111;color:#fff;display:flex;align-items:center;padding:0 16px;z-index:1000}
-.logo{font-size:20px;font-weight:bold}
-.logo span{color:#3fa9f5}
-#map{margin-top:64px;height:calc(100vh - 64px)}
-#addBtn{position:fixed;bottom:76px;right:16px;z-index:999;padding:14px 18px;border:none;border-radius:999px;background:#3fa9f5;color:#fff;font-size:16px;box-shadow:0 6px 18px rgba(0,0,0,.3)}
-#detailPanel{position:fixed;top:0;right:-360px;width:360px;max-width:92vw;height:100%;background:#fff;box-shadow:-4px 0 10px rgba(0,0,0,.3);padding:16px;transition:.25s;z-index:1001;overflow:auto}
-#detailPanel.active{right:0}
-#detailPanel h3{margin-bottom:8px}
-/* Mobile bottom bar */
-.mobile-bar{position:fixed;bottom:0;left:0;width:100%;height:var(--h);background:#111;display:flex;justify-content:space-around;align-items:center;z-index:1000}
-.mobile-bar button{background:none;border:none;color:#fff;font-size:22px;line-height:1}
-/* Mobile-first adjustments */
-@media(max-width:768px){
-  header{display:none}
-  #map{margin-top:0;height:calc(100vh - var(--h))}
-  #addBtn{bottom:calc(var(--h) + 16px)}
-  /* Bottom sheet instead of side panel */
-  #detailPanel{right:0;top:auto;bottom:-70vh;height:70vh;width:100%;max-width:100%;border-radius:16px 16px 0 0;transition:.25s}
-  #detailPanel.active{bottom:0}
-}
-</style>
+html,body{height:100%;width:100%}
+:root{--header-h:56px;--mobile-bar-h:56px}/* HEADER */ header{position:fixed;top:0;left:0;width:100%;height:var(--header-h);background:#111;color:#fff;display:flex;align-items:center;padding:0 16px;z-index:1000} .logo{font-size:20px;font-weight:bold} .logo span{color:#3fa9f5}
+
+/* MAP */ #map{position:fixed;top:var(--header-h);left:0;width:100vw;height:calc(100vh - var(--header-h))}
+
+/* ADD BUTTON */ #addBtn{position:fixed;bottom:calc(var(--mobile-bar-h) + 16px);right:16px;z-index:999;padding:14px 18px;border:none;border-radius:999px;background:#3fa9f5;color:#fff;font-size:16px;box-shadow:0 6px 18px rgba(0,0,0,.3)}
+
+/* DETAIL PANEL */ #detailPanel{position:fixed;right:0;top:var(--header-h);width:340px;max-width:92vw;height:calc(100vh - var(--header-h));background:#fff;box-shadow:-4px 0 10px rgba(0,0,0,.3);padding:16px;transform:translateX(100%);transition:.25s;z-index:1001;overflow:auto} #detailPanel.active{transform:translateX(0)}
+
+/* MOBILE BAR */ .mobile-bar{display:none}
+
+/* MOBILE */ @media(max-width:768px){ header{display:flex}
+
+#map{top:var(--header-h);height:calc(100vh - var(--header-h) - var(--mobile-bar-h))}
+
+.mobile-bar{position:fixed;bottom:0;left:0;width:100%;height:var(--mobile-bar-h);background:#111;display:flex;justify-content:space-around;align-items:center;z-index:1000} .mobile-bar button{background:none;border:none;color:#fff;font-size:22px}
+
+/* Bottom sheet */ #detailPanel{top:auto;bottom:0;height:65vh;width:100%;max-width:100%;border-radius:16px 16px 0 0;transform:translateY(100%)} #detailPanel.active{transform:translateY(0)} } </style>
+
 </head>
 <body>
 <header><div class="logo">haritadan<span>.com</span></div></header>
