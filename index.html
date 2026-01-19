@@ -1,65 +1,53 @@
 <!DOCTYPE html><html lang="tr">
 <head>
 <meta charset="UTF-8">
-<title>haritadan.com – Kategori Filtreli Demo</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" /><style>
+<title>haritadan.com – Üyelik & İlan Detay Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
 html,body{height:100%}
 header{position:fixed;top:0;left:0;width:100%;height:64px;background:#111;color:#fff;display:flex;align-items:center;padding:0 24px;z-index:1000}
-.logo{font-size:22px;font-weight:bold;margin-right:30px}
+.logo{font-size:22px;font-weight:bold}
 .logo span{color:#3fa9f5}
-nav ul{list-style:none;display:flex;gap:20px}
-nav li{cursor:pointer}
-nav li:hover{color:#3fa9f5}
-#map{margin-top:64px;height:calc(100vh - 64px);width:100%}
-.filter-bar{position:fixed;top:80px;left:20px;background:#fff;padding:10px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:999}
-.filter-bar button{display:block;margin:5px 0;padding:6px 10px;border:none;border-radius:4px;cursor:pointer;background:#eee}
-.filter-bar button:hover{background:#3fa9f5;color:#fff}
-</style></head>
-<body><header>
-  <div class="logo">haritadan<span>.com</span></div>
-  <nav>
-    <ul>
-      <li onclick="filterCategory('all')">Anasayfa</li>
-      <li onclick="filterCategory('Emlak')">Emlak</li>
-      <li onclick="filterCategory('Araç')">Araç</li>
-      <li onclick="filterCategory('Etkinlik')">Etkinlik</li>
-      <li>Ücretlendirme</li>
-      <li>Üyelik</li>
-    </ul>
-  </nav>
-</header><div class="filter-bar">
-  <strong>Kategoriler</strong>
-  <button onclick="filterCategory('all')">Tümü</button>
-  <button onclick="filterCategory('Emlak')">Emlak</button>
-  <button onclick="filterCategory('Araç')">Araç</button>
-  <button onclick="filterCategory('Etkinlik')">Etkinlik</button>
-</div><div id="map"></div><script src="https://unpkg.com/leaflet/dist/leaflet.js"></script><script>
-const map = L.map('map').setView([39.0,35.0],6);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap'}).addTo(map);
+#map{margin-top:64px;height:calc(100vh - 64px)}
+#addBtn{position:fixed;bottom:70px;right:20px;z-index:999;padding:12px 16px;border:none;border-radius:50px;background:#3fa9f5;color:#fff;font-size:16px}
+#detailPanel{position:fixed;top:0;right:-320px;width:320px;height:100%;background:#fff;box-shadow:-4px 0 10px rgba(0,0,0,.3);padding:20px;transition:.3s;z-index:1001}
+#detailPanel.active{right:0}
+#detailPanel h3{margin-bottom:10px}
+.mobile-bar{position:fixed;bottom:0;left:0;width:100%;height:56px;background:#111;display:flex;justify-content:space-around;align-items:center;z-index:1000}
+.mobile-bar button{background:none;border:none;color:#fff;font-size:20px}
+@media(min-width:769px){.mobile-bar{display:none}}
+</style>
+</head>
+<body>
+<header><div class="logo">haritadan<span>.com</span></div></header>
+<div id="map"></div>
+<button id="addBtn">➕ İlan Ekle</button>
+<div id="detailPanel"><h3 id="dTitle"></h3><p id="dCat"></p><p id="dType"></p></div>
+<div class="mobile-bar">
+<button onclick="filter('all')">🏠</button>
+<button onclick="filter('Emlak')">🏡</button>
+<button onclick="filter('Araç')">🚗</button>
+<button onclick="filter('Etkinlik')">🎉</button>
+<button id="addBtn2">➕</button>
+</div>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+// USER TYPE: 'bireysel' or 'kurumsal'
+let userType='bireysel';
+let bireyselLimit=1;
+let bireyselCount=0;const map=L.map('map').setView([39,35],6); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM'}).addTo(map);
 
-const ilanlar = [
-  {lat:41.0082,lng:28.9784,title:'Kiralık Daire – İstanbul',cat:'Emlak'},
-  {lat:38.4237,lng:27.1428,title:'Satılık Araba – İzmir',cat:'Araç'},
-  {lat:36.8969,lng:30.7133,title:'Konser – Antalya',cat:'Etkinlik'},
-  {lat:40.1950,lng:29.0600,title:'Satılık Daire – Bursa',cat:'Emlak'}
-];
+let ilanlar=[ {lat:41.01,lng:28.97,title:'Kiralık Daire',cat:'Emlak',type:'Bireysel'}, {lat:38.42,lng:27.14,title:'Satılık Araç',cat:'Araç',type:'Kurumsal'}, {lat:36.89,lng:30.71,title:'Konser',cat:'Etkinlik',type:'Bireysel'} ]; let markers=[];
 
-let markers = [];
+function render(cat){markers.forEach(m=>map.removeLayer(m));markers=[];ilanlar.filter(i=>cat==='all'||i.cat===cat).forEach(i=>{const m=L.marker([i.lat,i.lng]).addTo(map).on('click',()=>showDetail(i));markers.push(m);});} function filter(c){render(c)} render('all');
 
-function renderMarkers(category){
-  markers.forEach(m=>map.removeLayer(m));
-  markers=[];
-  ilanlar.filter(i=>category==='all'||i.cat===category)
-    .forEach(i=>{
-      const m=L.marker([i.lat,i.lng]).addTo(map)
-        .bindPopup(`<strong>${i.title}</strong><br>Kategori: ${i.cat}`);
-      markers.push(m);
-    });
-}
+function showDetail(i){document.getElementById('dTitle').innerText=i.title;document.getElementById('dCat').innerText='Kategori: '+i.cat;document.getElementById('dType').innerText='Üyelik: '+i.type;document.getElementById('detailPanel').classList.add('active');}
 
-function filterCategory(cat){renderMarkers(cat)}
+function addIlan(){if(userType==='bireysel'&&bireyselCount>=bireyselLimit){alert('Bireysel üyelikte ilan limitiniz doldu');return;}map.once('click',e=>{ilanlar.push({lat:e.latlng.lat,lng:e.latlng.lng,title:'Yeni İlan',cat:'Emlak',type:userType==='bireysel'?'Bireysel':'Kurumsal'});if(userType==='bireysel')bireyselCount++;render('all');});alert('Haritada bir nokta seç');} document.getElementById('addBtn').onclick=addIlan;document.getElementById('addBtn2').onclick=addIlan; </script>
 
-renderMarkers('all');
+</body>
+</html>renderMarkers('all');
 </script></body>
 </html>
