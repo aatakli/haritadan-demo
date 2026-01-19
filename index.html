@@ -1,86 +1,65 @@
 <!DOCTYPE html><html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <title>haritadan.com – Demo</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />  <!-- Leaflet CSS -->  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />  <style>
-    * { margin:0; padding:0; box-sizing:border-box; font-family:Arial, Helvetica, sans-serif; }
-    html, body { height:100%; }
-
-    header {
-      position:fixed;
-      top:0; left:0;
-      width:100%; height:64px;
-      background:#111;
-      color:#fff;
-      display:flex;
-      align-items:center;
-      padding:0 24px;
-      z-index:1000;
-    }
-
-    .logo { font-size:22px; font-weight:bold; margin-right:40px; }
-    .logo span { color:#3fa9f5; }
-
-    nav ul { list-style:none; display:flex; gap:24px; }
-    nav li { cursor:pointer; position:relative; }
-    nav li:hover { color:#3fa9f5; }
-
-    .submenu {
-      position:absolute;
-      top:28px; left:0;
-      background:#222;
-      display:none;
-      min-width:160px;
-    }
-
-    .submenu li { padding:8px 16px; }
-    .submenu li:hover { background:#333; }
-
-    .dropdown:hover .submenu { display:block; }
-
-    #map { height:100vh; width:100%; margin-top:64px; }
-  </style></head>
+<meta charset="UTF-8">
+<title>haritadan.com – Kategori Filtreli Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" /><style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
+html,body{height:100%}
+header{position:fixed;top:0;left:0;width:100%;height:64px;background:#111;color:#fff;display:flex;align-items:center;padding:0 24px;z-index:1000}
+.logo{font-size:22px;font-weight:bold;margin-right:30px}
+.logo span{color:#3fa9f5}
+nav ul{list-style:none;display:flex;gap:20px}
+nav li{cursor:pointer}
+nav li:hover{color:#3fa9f5}
+#map{margin-top:64px;height:calc(100vh - 64px);width:100%}
+.filter-bar{position:fixed;top:80px;left:20px;background:#fff;padding:10px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:999}
+.filter-bar button{display:block;margin:5px 0;padding:6px 10px;border:none;border-radius:4px;cursor:pointer;background:#eee}
+.filter-bar button:hover{background:#3fa9f5;color:#fff}
+</style></head>
 <body><header>
   <div class="logo">haritadan<span>.com</span></div>
   <nav>
     <ul>
-      <li>Anasayfa</li>
-      <li class="dropdown">Kategoriler
-        <ul class="submenu">
-          <li>Emlak</li>
-          <li>Araç</li>
-          <li>Alışveriş</li>
-          <li>Etkinlik</li>
-          <li>Kariyer</li>
-          <li>Arkadaşlık</li>
-        </ul>
-      </li>
+      <li onclick="filterCategory('all')">Anasayfa</li>
+      <li onclick="filterCategory('Emlak')">Emlak</li>
+      <li onclick="filterCategory('Araç')">Araç</li>
+      <li onclick="filterCategory('Etkinlik')">Etkinlik</li>
       <li>Ücretlendirme</li>
-      <li class="dropdown">Üyelik
-        <ul class="submenu">
-          <li>Bireysel</li>
-          <li>Kurumsal</li>
-        </ul>
-      </li>
-      <li>İletişim</li>
+      <li>Üyelik</li>
     </ul>
   </nav>
-</header><div id="map"></div><!-- Leaflet JS --><script src="https://unpkg.com/leaflet/dist/leaflet.js"></script><script>
-  const map = L.map('map').setView([39.0, 35.0], 6);
+</header><div class="filter-bar">
+  <strong>Kategoriler</strong>
+  <button onclick="filterCategory('all')">Tümü</button>
+  <button onclick="filterCategory('Emlak')">Emlak</button>
+  <button onclick="filterCategory('Araç')">Araç</button>
+  <button onclick="filterCategory('Etkinlik')">Etkinlik</button>
+</div><div id="map"></div><script src="https://unpkg.com/leaflet/dist/leaflet.js"></script><script>
+const map = L.map('map').setView([39.0,35.0],6);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap'}).addTo(map);
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap'
-  }).addTo(map);
+const ilanlar = [
+  {lat:41.0082,lng:28.9784,title:'Kiralık Daire – İstanbul',cat:'Emlak'},
+  {lat:38.4237,lng:27.1428,title:'Satılık Araba – İzmir',cat:'Araç'},
+  {lat:36.8969,lng:30.7133,title:'Konser – Antalya',cat:'Etkinlik'},
+  {lat:40.1950,lng:29.0600,title:'Satılık Daire – Bursa',cat:'Emlak'}
+];
 
-  const ilanlar = [
-    { lat: 41.0082, lng: 28.9784, title: 'Kiralık Daire – İstanbul', cat:'Emlak' },
-    { lat: 38.4237, lng: 27.1428, title: 'İkinci El Araç – İzmir', cat:'Araç' },
-    { lat: 36.8969, lng: 30.7133, title: 'Etkinlik – Antalya', cat:'Etkinlik' }
-  ];
+let markers = [];
 
-  ilanlar.forEach(i => {
-    L.marker([i.lat, i.lng]).addTo(map)
-      .bindPopup(`<strong>${i.title}</strong><br>Kategori: ${i.cat}`);
-  });
+function renderMarkers(category){
+  markers.forEach(m=>map.removeLayer(m));
+  markers=[];
+  ilanlar.filter(i=>category==='all'||i.cat===category)
+    .forEach(i=>{
+      const m=L.marker([i.lat,i.lng]).addTo(map)
+        .bindPopup(`<strong>${i.title}</strong><br>Kategori: ${i.cat}`);
+      markers.push(m);
+    });
+}
+
+function filterCategory(cat){renderMarkers(cat)}
+
+renderMarkers('all');
 </script></body>
 </html>
